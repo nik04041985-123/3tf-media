@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>3tf media relay</title>
+<meta name="robots" content="noindex">
+<style>body{font:16px/1.4 -apple-system,Inter,sans-serif;background:#111510;color:#D0FF71;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style></head>
+<body><div id="s">3tf: preparing file…</div>
+<script>
+(async () => {
+  const s = document.getElementById('s');
+  const p = new URLSearchParams(location.search);
+  const f = p.get('f');                       // path inside this repo, e.g. reels/2026-11/x.mp4
+  const target = 'https://www.instagram.com';
+  const allowed = /^(reels|banners|posts)\/[\w\-\/]+\.(mp4|mov|jpg|jpeg|png)$/;
+  if (!f || !allowed.test(f) || !window.opener) { s.textContent = '3tf: nothing to send'; return; }
+  try {
+    const r = await fetch(f, { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const buf = await r.arrayBuffer();
+    const name = f.split('/').pop();
+    const type = r.headers.get('content-type') || '';
+    window.opener.postMessage({ kind: '3tf-media', name, type, buf }, target, [buf]);
+    s.textContent = '3tf: sent ' + name;
+    setTimeout(() => window.close(), 800);
+  } catch (e) { s.textContent = '3tf: error ' + e.message; }
+})();
+</script></body></html>
